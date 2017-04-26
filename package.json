@@ -30,10 +30,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pitakill/ngQuill"
+    "url": "https://github.com/cultura-colectiva/ng-quill"
   },
   "bugs": {
-    "url": "https://github.com/pitakill/ngQuill/issues"
+    "url": "https://github.com/cultura-colectiva/ng-quill/issues"
   },
   "keywords": [
     "editor",
@@ -44,8 +44,10 @@
   ],
   "contributors": [
     {
-      "name": "Bengt Weiße",
-      "name": "Leopoldo Caballero"
+      "name": "Bengt Weiße"
+    },
+    {
+      "name": "Carlos F. Peña"
     }
   ]
 }
