@@ -148,7 +148,7 @@
           modules: this.modules || ngQuillConfig.modules,
           formats: this.formats || ngQuillConfig.formats,
           placeholder: this.placeholder || ngQuillConfig.placeholder,
-          boundy: ngQuillConfig.bounds
+          bounds: ngQuillConfig.bounds
         }
       }
 
