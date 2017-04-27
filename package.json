@@ -1,9 +1,9 @@
 {
   "name": "ng-quill-cuco",
-  "version": "3.1.0-1",
+  "version": "3.2.0",
   "description": "Angular directive for rich text editor Quill",
   "author": "Bengt Weiße <bengtler@gmail.com>",
-  "homepage": "https://github.com/pitakill/ngQuill",
+  "homepage": "https://github.com/cultura-colectiva/ng-quill",
   "main": "dist/ng-quill.js",
   "devDependencies": {
     "angular-mocks": "^1.5.3",
