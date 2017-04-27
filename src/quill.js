@@ -1,5 +1,5 @@
 /*!
- * Quill Editor v1.2.3-2
+ * Quill Editor v1.3.1
  * https://quilljs.com/
  * Copyright (c) 2014, Jason Chen
  * Copyright (c) 2013, salesforce.com
@@ -22,9 +22,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	function __webpack_require__(moduleId) {
 /******/
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId])
+/******/ 		if(installedModules[moduleId]) {
 /******/ 			return installedModules[moduleId].exports;
-/******/
+/******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
@@ -182,7 +182,9 @@ function create(input, value) {
         throw new ParchmentError("Unable to create " + input + " blot");
     }
     var BlotClass = match;
-    var node = input instanceof Node ? input : BlotClass.create(value);
+    var node = (input instanceof Node || input['nodeType'] === Node.TEXT_NODE) ?
+        input :
+        BlotClass.create(value);
     return new BlotClass(node, value);
 }
 exports.create = create;
@@ -203,7 +205,7 @@ function query(query, scope) {
     if (typeof query === 'string') {
         match = types[query] || attributes[query];
     }
-    else if (query instanceof Text) {
+    else if (query instanceof Text || query['nodeType'] === Node.TEXT_NODE) {
         match = types['text'];
     }
     else if (typeof query === 'number') {
@@ -1592,7 +1594,7 @@ Quill.DEFAULTS = {
 Quill.events = _emitter4.default.events;
 Quill.sources = _emitter4.default.sources;
 // eslint-disable-next-line no-undef
-Quill.version =  false ? 'dev' : "1.2.3-2";
+Quill.version =  false ? 'dev' : "1.3.1";
 
 Quill.imports = {
   'delta': _quillDelta2.default,
@@ -2168,6 +2170,7 @@ var Selection = function () {
       }
     });
     this.emitter.on(_emitter4.default.events.SCROLL_BEFORE_UPDATE, function () {
+      if (!_this.hasFocus()) return;
       var native = _this.getNativeRange();
       if (native == null) return;
       if (native.start.node === _this.cursor.textNode) return; // cursor.restore() will handle
@@ -4954,11 +4957,9 @@ var Keyboard = function (_Module) {
       _this.addBinding({ key: Keyboard.keys.BACKSPACE }, { collapsed: true, prefix: /^.?$/ }, handleBackspace);
       _this.addBinding({ key: Keyboard.keys.DELETE }, { collapsed: true, suffix: /^.?$/ }, handleDelete);
     }
-    // this.addBinding({ key: Keyboard.keys.BACKSPACE }, { ctrlKey: true }, function() {});
-    // this.addBinding({ key: Keyboard.keys.DELETE }, { ctrlKey: true }, function() {});
     _this.addBinding({ key: Keyboard.keys.BACKSPACE }, { collapsed: false }, handleDeleteRange);
     _this.addBinding({ key: Keyboard.keys.DELETE }, { collapsed: false }, handleDeleteRange);
-    _this.addBinding({ key: Keyboard.keys.BACKSPACE }, { empty: true, shortKey: true }, handleBackspace);
+    _this.addBinding({ key: Keyboard.keys.BACKSPACE, altKey: null, ctrlKey: null, metaKey: null, shiftKey: null }, { collapsed: true, offset: 0 }, handleBackspace);
     _this.listen();
     return _this;
   }
@@ -5097,6 +5098,10 @@ Keyboard.DEFAULTS = {
     'outdent backspace': {
       key: Keyboard.keys.BACKSPACE,
       collapsed: true,
+      shiftKey: null,
+      metaKey: null,
+      ctrlKey: null,
+      altKey: null,
       format: ['blockquote', 'indent', 'list'],
       offset: 0,
       handler: function handler(range, context) {
@@ -5221,9 +5226,15 @@ function handleBackspace(range, context) {
 
   var formats = {};
   if (context.offset === 0) {
-    var curFormats = line.formats();
-    var prevFormats = this.quill.getFormat(range.index - 1, 1);
-    formats = _op2.default.attributes.diff(curFormats, prevFormats) || {};
+    var _quill$getLine7 = this.quill.getLine(range.index - 1),
+        _quill$getLine8 = _slicedToArray(_quill$getLine7, 1),
+        prev = _quill$getLine8[0];
+
+    if (prev != null && prev.length() > 1) {
+      var curFormats = line.formats();
+      var prevFormats = this.quill.getFormat(range.index - 1, 1);
+      formats = _op2.default.attributes.diff(curFormats, prevFormats) || {};
+    }
   }
   // Check for astral symbols
   var length = /[\uD800-\uDBFF][\uDC00-\uDFFF]$/.test(context.prefix) ? 2 : 1;
@@ -5238,7 +5249,29 @@ function handleDelete(range, context) {
   // Check for astral symbols
   var length = /^[\uD800-\uDBFF][\uDC00-\uDFFF]/.test(context.suffix) ? 2 : 1;
   if (range.index >= this.quill.getLength() - length) return;
+  var formats = {},
+      nextLength = 0;
+
+  var _quill$getLine9 = this.quill.getLine(range.index),
+      _quill$getLine10 = _slicedToArray(_quill$getLine9, 1),
+      line = _quill$getLine10[0];
+
+  if (context.offset >= line.length() - 1) {
+    var _quill$getLine11 = this.quill.getLine(range.index + 1),
+        _quill$getLine12 = _slicedToArray(_quill$getLine11, 1),
+        next = _quill$getLine12[0];
+
+    if (next) {
+      var curFormats = line.formats();
+      var nextFormats = this.quill.getFormat(range.index, 1);
+      formats = _op2.default.attributes.diff(curFormats, nextFormats) || {};
+      nextLength = next.length();
+    }
+  }
   this.quill.deleteText(range.index, length, _quill2.default.sources.USER);
+  if (Object.keys(formats).length > 0) {
+    this.quill.formatLine(range.index + nextLength - 1, length, formats, _quill2.default.sources.USER);
+  }
 }
 
 function handleDeleteRange(range) {
@@ -6146,7 +6179,7 @@ BaseTheme.DEFAULTS = (0, _extend2.default)(true, {}, _theme2.default.DEFAULTS, {
           if (fileInput == null) {
             fileInput = document.createElement('input');
             fileInput.setAttribute('type', 'file');
-            fileInput.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon, image/svg+xml');
+            fileInput.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon');
             fileInput.classList.add('ql-image');
             fileInput.addEventListener('change', function () {
               if (fileInput.files != null && fileInput.files[0] != null) {
@@ -6264,8 +6297,8 @@ var BaseTooltip = function (_Tooltip) {
           {
             if (!value) break;
             var range = this.quill.getSelection(true);
-            var index = range.index + range.length;
             if (range != null) {
+              var index = range.index + range.length;
               this.quill.insertEmbed(index, this.root.getAttribute('data-mode'), value, _emitter2.default.sources.USER);
               if (this.root.getAttribute('data-mode') === 'formula') {
                 this.quill.insertText(index + 1, ' ', _emitter2.default.sources.USER);
@@ -6543,9 +6576,11 @@ if (!Array.prototype.find) {
   });
 }
 
-// Disable resizing in Firefox
 document.addEventListener("DOMContentLoaded", function () {
+  // Disable resizing in Firefox
   document.execCommand("enableObjectResizing", false, false);
+  // Disable automatic linkifying in IE11
+  document.execCommand("autoUrlDetect", false, false);
 });
 
 /***/ }),
@@ -6624,9 +6659,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.matchText = exports.matchSpacing = exports.matchNewline = exports.matchBlot = exports.matchAttributor = exports.default = undefined;
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _extend2 = __webpack_require__(3);
+
+var _extend3 = _interopRequireDefault(_extend2);
 
 var _quillDelta = __webpack_require__(2);
 
@@ -6676,7 +6717,7 @@ var debug = (0, _logger2.default)('quill:clipboard');
 
 var DOM_KEY = '__ql-matcher';
 
-var CLIPBOARD_CONFIG = [[Node.TEXT_NODE, matchText], ['br', matchBreak], [Node.ELEMENT_NODE, matchNewline], [Node.ELEMENT_NODE, matchBlot], [Node.ELEMENT_NODE, matchSpacing], [Node.ELEMENT_NODE, matchAttributor], [Node.ELEMENT_NODE, matchStyles], ['b', matchAlias.bind(matchAlias, 'bold')], ['i', matchAlias.bind(matchAlias, 'italic')], ['style', matchIgnore]];
+var CLIPBOARD_CONFIG = [[Node.TEXT_NODE, matchText], [Node.TEXT_NODE, matchNewline], ['br', matchBreak], [Node.ELEMENT_NODE, matchNewline], [Node.ELEMENT_NODE, matchBlot], [Node.ELEMENT_NODE, matchSpacing], [Node.ELEMENT_NODE, matchAttributor], [Node.ELEMENT_NODE, matchStyles], ['li', matchIndent], ['b', matchAlias.bind(matchAlias, 'bold')], ['i', matchAlias.bind(matchAlias, 'italic')], ['style', matchIgnore]];
 
 var ATTRIBUTE_ATTRIBUTORS = [_align.AlignAttribute, _direction.DirectionAttribute].reduce(function (memo, attr) {
   memo[attr.keyName] = attr;
@@ -6716,7 +6757,7 @@ var Clipboard = function (_Module) {
     key: 'convert',
     value: function convert(html) {
       if (typeof html === 'string') {
-        this.container.innerHTML = html;
+        this.container.innerHTML = html.replace(/\>\r?\n +\</g, '><'); // Remove spaces between tags
       }
 
       var _prepareMatching = this.prepareMatching(),
@@ -6804,6 +6845,22 @@ Clipboard.DEFAULTS = {
   matchers: []
 };
 
+function applyFormat(delta, format, value) {
+  if ((typeof format === 'undefined' ? 'undefined' : _typeof(format)) === 'object') {
+    return Object.keys(format).reduce(function (delta, key) {
+      return applyFormat(delta, key, format[key]);
+    }, delta);
+  } else {
+    return delta.reduce(function (delta, op) {
+      if (op.attributes && op.attributes[format]) {
+        return delta.push(op);
+      } else {
+        return delta.insert(op.insert, (0, _extend3.default)({}, _defineProperty({}, format, value), op.attributes));
+      }
+    }, new _quillDelta2.default());
+  }
+}
+
 function computeStyle(node) {
   if (node.nodeType !== Node.ELEMENT_NODE) return {};
   var DOM_KEY = '__ql-computed-style';
@@ -6851,7 +6908,7 @@ function traverse(node, elementMatchers, textMatchers) {
 }
 
 function matchAlias(format, node, delta) {
-  return delta.compose(new _quillDelta2.default().retain(delta.length(), _defineProperty({}, format, true)));
+  return applyFormat(delta, format, true);
 }
 
 function matchAttributor(node, delta) {
@@ -6875,7 +6932,7 @@ function matchAttributor(node, delta) {
     }
   });
   if (Object.keys(formats).length > 0) {
-    delta = delta.compose(new _quillDelta2.default().retain(delta.length(), formats));
+    delta = applyFormat(delta, formats);
   }
   return delta;
 }
@@ -6891,8 +6948,7 @@ function matchBlot(node, delta) {
       delta = new _quillDelta2.default().insert(embed, match.formats(node));
     }
   } else if (typeof match.formats === 'function') {
-    var formats = _defineProperty({}, match.blotName, match.formats(node));
-    delta = delta.compose(new _quillDelta2.default().retain(delta.length(), formats));
+    delta = applyFormat(delta, match.blotName, match.formats(node));
   }
   return delta;
 }
@@ -6908,9 +6964,28 @@ function matchIgnore() {
   return new _quillDelta2.default();
 }
 
+function matchIndent(node, delta) {
+  var match = _parchment2.default.query(node);
+  if (match == null || match.blotName !== 'list-item' || !deltaEndsWith(delta, '\n')) {
+    return delta;
+  }
+  var indent = -1,
+      parent = node.parentNode;
+  while (!parent.classList.contains('ql-clipboard')) {
+    if ((_parchment2.default.query(parent) || {}).blotName === 'list') {
+      indent += 1;
+    }
+    parent = parent.parentNode;
+  }
+  if (indent <= 0) return delta;
+  return delta.compose(new _quillDelta2.default().retain(delta.length() - 1).retain(1, { indent: indent }));
+}
+
 function matchNewline(node, delta) {
-  if (isLine(node) && !deltaEndsWith(delta, '\n')) {
-    delta.insert('\n');
+  if (!deltaEndsWith(delta, '\n')) {
+    if (isLine(node) || delta.length() > 0 && node.nextSibling && isLine(node.nextSibling)) {
+      delta.insert('\n');
+    }
   }
   return delta;
 }
@@ -6935,7 +7010,7 @@ function matchStyles(node, delta) {
     formats.bold = true;
   }
   if (Object.keys(formats).length > 0) {
-    delta = delta.compose(new _quillDelta2.default().retain(delta.length(), formats));
+    delta = applyFormat(delta, formats);
   }
   if (parseFloat(style.textIndent || 0) > 0) {
     // Could be 0.5in
@@ -6949,6 +7024,9 @@ function matchText(node, delta) {
   // Word represents empty line with <o:p>&nbsp;</o:p>
   if (node.parentNode.tagName === 'O:P') {
     return delta.insert(text.trim());
+  }
+  if (text.trim().length === 0 && node.parentNode.classList.contains('ql-clipboard')) {
+    return delta;
   }
   if (!computeStyle(node.parentNode).whiteSpace.startsWith('pre')) {
     // eslint-disable-next-line func-style
@@ -8976,7 +9054,10 @@ var TextBlot = (function (_super) {
         return document.createTextNode(value);
     };
     TextBlot.value = function (domNode) {
-        return domNode.data;
+        var text = domNode.data;
+        if (text["normalize"])
+            text = text["normalize"]();
+        return text;
     };
     TextBlot.prototype.deleteAt = function (index, length) {
         this.domNode.data = this.text = this.text.slice(0, index) + this.text.slice(index + length);
@@ -9546,7 +9627,7 @@ var SnowTooltip = function (_BaseTooltip) {
   return SnowTooltip;
 }(_base.BaseTooltip);
 
-SnowTooltip.TEMPLATE = ['<a class="ql-preview" target="_blank" href="about:blank"></a>', '<input type="text" data-formula="e=mc^2" data-link="quilljs.com" data-video="Embed URL">', '<a class="ql-action"></a>', '<a class="ql-remove"></a>'].join('');
+SnowTooltip.TEMPLATE = ['<a class="ql-preview" target="_blank" href="about:blank"></a>', '<input type="text" data-formula="e=mc^2" data-link="https://quilljs.com" data-video="Embed URL">', '<a class="ql-action"></a>', '<a class="ql-remove"></a>'].join('');
 
 exports.default = SnowTheme;
 
@@ -10196,6 +10277,7 @@ var Tweet = function (_BlockEmbed) {
         node.insertAdjacentHTML('beforeend', ' (Aquí se desplegará)]');
         node.setAttribute('style', 'text-align:center;');
       } else {
+        // eslint-disable-next-line
         twttr.widgets.createTweet(id, node, {
           align: 'center',
           lang: 'es',
@@ -10317,11 +10399,18 @@ var Video = function (_BlockEmbed) {
   }], [{
     key: 'create',
     value: function create(value) {
-      var node = _get(Video.__proto__ || Object.getPrototypeOf(Video), 'create', this).call(this, value);
+      // Create parent
+      var container = _get(Video.__proto__ || Object.getPrototypeOf(Video), 'create', this).call(this, value);
+
+      var node = document.createElement('IFRAME');
+      node.classList.add('ql-video');
       node.setAttribute('frameborder', '0');
       node.setAttribute('allowfullscreen', true);
       node.setAttribute('src', this.sanitize(value));
-      return node;
+
+      container.appendChild(node);
+
+      return container;
     }
   }, {
     key: 'formats',
@@ -10349,8 +10438,8 @@ var Video = function (_BlockEmbed) {
 }(_block.BlockEmbed);
 
 Video.blotName = 'video';
-Video.className = 'ql-video';
-Video.tagName = 'IFRAME';
+Video.className = 'ql-video-container';
+Video.tagName = 'DIV';
 
 exports.default = Video;
 
@@ -10761,7 +10850,7 @@ var BubbleTooltip = function (_BaseTooltip) {
   return BubbleTooltip;
 }(_base.BaseTooltip);
 
-BubbleTooltip.TEMPLATE = ['<span class="ql-tooltip-arrow"></span>', '<div class="ql-tooltip-editor">', '<input type="text" data-formula="e=mc^2" data-link="quilljs.com" data-video="Embed URL">', '<a class="ql-close"></a>', '</div>'].join('');
+BubbleTooltip.TEMPLATE = ['<span class="ql-tooltip-arrow"></span>', '<div class="ql-tooltip-editor">', '<input type="text" data-formula="e=mc^2" data-link="https://quilljs.com" data-video="Embed URL">', '<a class="ql-close"></a>', '</div>'].join('');
 
 exports.BubbleTooltip = BubbleTooltip;
 exports.default = BubbleTheme;

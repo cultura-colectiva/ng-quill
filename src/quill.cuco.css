@@ -1,5 +1,5 @@
 /*!
- * Quill Editor v1.2.3-2
+ * Quill Editor v1.3.1
  * https://quilljs.com/
  * Copyright (c) 2014, Jason Chen
  * Copyright (c) 2013, salesforce.com
@@ -839,6 +839,20 @@
 }
 .ql-toolbar.ql-cuco + .ql-container.ql-cuco {
   border-top: 0px;
+}
+.ql-video-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  max-width: 100%;
+}
+.ql-video-container iframe {
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
 }
 .ql-cuco .ql-tooltip {
   background-color: #fff;
