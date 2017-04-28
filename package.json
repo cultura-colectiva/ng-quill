@@ -1,6 +1,6 @@
 {
   "name": "ng-quill-cuco",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "description": "Angular directive for rich text editor Quill",
   "author": "Bengt Weiße <bengtler@gmail.com>",
   "homepage": "https://github.com/cultura-colectiva/ng-quill",
