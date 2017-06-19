@@ -35,7 +35,7 @@
 
           ['clean'],                                         // remove formatting button
 
-          ['link', 'image', 'video'],                        // link and image, video
+          ['link', 'image', 'video', 'iframe-embed'],                        // link and image, video
           ['tweet']                                          // link and image, video
         ]
       },

@@ -1,5 +1,5 @@
 /*!
- * Quill Editor v1.3.1
+ * Quill Editor v1.3.3-6
  * https://quilljs.com/
  * Copyright (c) 2014, Jason Chen
  * Copyright (c) 2013, salesforce.com
@@ -7,7 +7,7 @@
 .ql-container {
   box-sizing: border-box;
   font-family: Helvetica, Arial, sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   height: 100%;
   margin: 0px;
   position: relative;
