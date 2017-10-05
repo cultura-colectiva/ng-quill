@@ -1652,17 +1652,9 @@ qs@~6.3.0:
   version "6.3.2"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.3.2.tgz#e75bd5f6e268122a2a0e0bda630b2550c166502c"
 
-quill-delta@3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/quill-delta/-/quill-delta-3.5.0.tgz#5b67e685da60c34eabed4449c416c74aab89157b"
-  dependencies:
-    deep-equal "^1.0.1"
-    extend "^3.0.0"
-    fast-diff "1.1.1"
-
-quill@^1.2.0:
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/quill/-/quill-1.2.4.tgz#2a822fb10f4346e63845b37637ee3d6bf0d20b65"
+quill-cuco@1.3.4-1:
+  version "1.3.4-1"
+  resolved "https://registry.yarnpkg.com/quill-cuco/-/quill-cuco-1.3.4-1.tgz#ed076b23d6ac6ea5ba0f93452a89b45f19b75f29"
   dependencies:
     clone "~2.1.1"
     deep-equal "~1.0.1"
@@ -1670,6 +1662,14 @@ quill@^1.2.0:
     extend "~3.0.0"
     parchment "1.0.9"
     quill-delta "3.5.0"
+
+quill-delta@3.5.0:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/quill-delta/-/quill-delta-3.5.0.tgz#5b67e685da60c34eabed4449c416c74aab89157b"
+  dependencies:
+    deep-equal "^1.0.1"
+    extend "^3.0.0"
+    fast-diff "1.1.1"
 
 randomatic@^1.1.3:
   version "1.1.6"

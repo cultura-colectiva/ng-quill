@@ -1,5 +1,5 @@
 /*!
- * Quill Editor v1.3.3-6
+ * Quill Editor v1.3.4-1
  * https://quilljs.com/
  * Copyright (c) 2014, Jason Chen
  * Copyright (c) 2013, salesforce.com
@@ -7,7 +7,7 @@
 .ql-container {
   box-sizing: border-box;
   font-family: Helvetica, Arial, sans-serif;
-  font-size: 15px;
+  font-size: 13px;
   height: 100%;
   margin: 0px;
   position: relative;
@@ -917,6 +917,9 @@
 .ql-cuco .ql-tooltip[data-mode=tweet]::before {
   content: "Liga del tweet:";
 }
+.ql-cuco .ql-tooltip[data-mode=instagram]::before {
+  content: "Blockquote de Instagram:";
+}
 .ql-cuco .ql-tooltip[data-mode=video]::before {
   content: "Liga del video:";
 }
@@ -925,4 +928,8 @@
 }
 .ql-container.ql-cuco {
   border: 1px solid #ccc;
+}
+.ql-instagram {
+  margin: auto;
+  max-width: 400px;
 }

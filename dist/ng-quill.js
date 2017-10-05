@@ -36,7 +36,7 @@
           ['clean'],                                         // remove formatting button
 
           ['link', 'image', 'video', 'iframe-embed'],                        // link and image, video
-          ['tweet']                                          // link and image, video
+          ['tweet', 'instagram']                                          // link and image, video
         ]
       },
       theme: 'cuco',
