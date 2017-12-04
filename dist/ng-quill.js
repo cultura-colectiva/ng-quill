@@ -1,6 +1,6 @@
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
-    define(['quill-cuco'], factory)
+    define(['./quill-cuco.js'], factory)
   } else if (typeof exports === 'object') {
     module.exports = factory(require('quill-cuco'))
   } else {

@@ -1,5 +1,5 @@
 /*!
- * Quill Editor v1.3.4-1
+ * Quill Editor v1.3.4-2
  * https://quilljs.com/
  * Copyright (c) 2014, Jason Chen
  * Copyright (c) 2013, salesforce.com
@@ -1594,7 +1594,7 @@ Quill.DEFAULTS = {
 Quill.events = _emitter4.default.events;
 Quill.sources = _emitter4.default.sources;
 // eslint-disable-next-line no-undef
-Quill.version =  false ? 'dev' : "1.3.4-1";
+Quill.version =  false ? 'dev' : "1.3.4-2";
 
 Quill.imports = {
   'delta': _quillDelta2.default,
@@ -6333,14 +6333,13 @@ var BaseTooltip = function (_Tooltip) {
           {
             var _valueBoolean = Boolean(value);
             if (!_valueBoolean) break;
-            var url = value.match(/(?:https?):\/\/(?:www\.)?instagram\.com\/p\/(\w+)\/?/);
+            var url = value.match(/(?:https?):\/\/(?:www\.)?instagram\.com\/p\/([\w-]+)\/?/);
             if (url) {
-              var html = value.match(/^(?:<blockquote)(?:.*)(?:<\/blockquote>)/);
-              var newValue = [url[1], html[0]];
-              value = newValue;
+              value = url[1];
               var _range2 = this.quill.getSelection(true);
               this.quill.insertEmbed(_range2.index + 1, 'instagram', value, _emitter2.default.sources.USER);
-              this.quill.setSelection(_range2.index + 2, _emitter2.default.sources.SILENT);
+              this.quill.insertText(_range2.index + 2, '\n', _emitter2.default.sources.USER);
+              this.quill.setSelection(_range2.index + 3, _emitter2.default.sources.SILENT);
             }
             break;
           }
@@ -10018,8 +10017,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
@@ -10046,13 +10043,9 @@ var Instagram = function (_BlockEmbed) {
 
   _createClass(Instagram, null, [{
     key: 'create',
-    value: function create(match) {
-      var _match = _slicedToArray(match, 2),
-          id = _match[0],
-          html = _match[1];
-
+    value: function create(id) {
       var node = _get(Instagram.__proto__ || Object.getPrototypeOf(Instagram), 'create', this).call(this);
-      Object.assign(node.dataset, { id: id, html: html });
+      Object.assign(node.dataset, { id: id });
 
       if (typeof instgrm === 'undefined') {
         warn('There is no Instagram Library. Add it!');
@@ -10061,21 +10054,25 @@ var Instagram = function (_BlockEmbed) {
         node.insertAdjacentHTML('beforeend', ' (Aquí se desplegará)]');
         node.setAttribute('style', 'text-align:center;');
       } else {
-        node.insertAdjacentHTML('afterbegin', html);
-        // eslint-disable-next-line
-        instgrm.Embeds.process();
-      }
+        fetch('https://api.instagram.com/oembed?omitscript=true&url=http://instagr.am/p/' + id + '/').then(function (r) {
+          return r.json();
+        }).then(function (_ref) {
+          var html = _ref.html;
 
+          node.insertAdjacentHTML('afterbegin', html);
+          // eslint-disable-next-line
+          instgrm.Embeds.process();
+          return node;
+        });
+      }
       return node;
     }
   }, {
     key: 'value',
     value: function value(domNode) {
-      var _domNode$dataset = domNode.dataset,
-          id = _domNode$dataset.id,
-          html = _domNode$dataset.html;
+      var id = domNode.dataset.id;
 
-      return [id, html];
+      return id;
     }
   }]);
 
